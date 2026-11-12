@@ -197,33 +197,48 @@ function splitArmy(u){const members=armyMembers(u);if(members.length<2)return fa
 function drawCityScreen(city){
 const cv=$('cityViewCanvas'),c=cv.getContext('2d'),w=cv.width,h=cv.height;
 const seed=(city.x*173+city.y*239+game.seed)>>>0,rand=rnd(seed),pop=Math.max(1,city.pop||1),owned=city.buildings||[];
-const sky=c.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#a5b8b4');sky.addColorStop(.45,'#d8c7a0');sky.addColorStop(1,'#8b9b6a');c.fillStyle=sky;c.fillRect(0,0,w,h);
-c.fillStyle='#8a9c7d';c.beginPath();c.moveTo(0,215);for(let x=0;x<=w;x+=25)c.lineTo(x,190+Math.sin(x*.017+seed)*18);c.lineTo(w,350);c.lineTo(0,350);c.fill();
-c.fillStyle='#6e875d';c.beginPath();c.moveTo(0,260);for(let x=0;x<=w;x+=25)c.lineTo(x,242+Math.sin(x*.013+seed)*22);c.lineTo(w,390);c.lineTo(0,390);c.fill();
-const originX=w/2,originY=175,tw=78,th=39;
+const sky=c.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#a7c7d2');sky.addColorStop(.48,'#e5d7a6');sky.addColorStop(1,'#9cbb81');c.fillStyle=sky;c.fillRect(0,0,w,h);
+function poly(pts,fill,stroke='#00000000',line=1){c.beginPath();c.moveTo(...pts[0]);for(let k=1;k<pts.length;k++)c.lineTo(...pts[k]);c.closePath();c.fillStyle=fill;c.fill();if(stroke!=='#00000000'){c.strokeStyle=stroke;c.lineWidth=line;c.stroke()}}
+function line(pts,col,width=2){c.beginPath();c.moveTo(...pts[0]);for(let k=1;k<pts.length;k++)c.lineTo(...pts[k]);c.strokeStyle=col;c.lineWidth=width;c.stroke()}
+for(let layer=0;layer<4;layer++){const y=130+layer*47;const pts=[[0,y+40]];for(let x=0;x<=w;x+=25)pts.push([x,y-35*Math.sin(x*.008+layer*1.7)-20*Math.sin(x*.023+layer)]);pts.push([w,h],[0,h]);poly(pts,['#9eaf9d','#789b84','#70916d','#83a26b'][layer])}
+for(let k=0;k<16;k++){let x=k*87-60,y=180+18*Math.sin(k*2);poly([[x-68,y+60],[x,y-80-rand()*80],[x+80,y+60]],k%2?'#647e84':'#84989a');poly([[x-25,y-20],[x,y-80-rand()*40],[x+32,y-15],[x+6,y-28]],'#e3e4d9')}
+const originX=w/2,originY=168,tw=77,th=38.5,N=12;
 function pos(i,j){return [originX+(i-j)*tw/2,originY+(i+j)*th/2]}
-function poly(pts,fill,stroke){c.beginPath();c.moveTo(...pts[0]);for(let k=1;k<pts.length;k++)c.lineTo(...pts[k]);c.closePath();c.fillStyle=fill;c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=1;c.stroke()}}
-function prism(x,y,ww,hh,height,wall='#c5b49a',roof='#865f47'){poly([[x-ww/2,y-height],[x,y-height-hh/2],[x+ww/2,y-height],[x,y-height+hh/2]],roof,'#554c42');poly([[x-ww/2,y-height],[x,y-height+hh/2],[x,y+hh/2],[x-ww/2,y]],'#9d8a75');poly([[x,y-height+hh/2],[x+ww/2,y-height],[x+ww/2,y],[x,y+hh/2]],wall);c.fillStyle='#514333';c.fillRect(x+ww/6,y-height/2,5,9)}
-function tree(x,y){c.fillStyle='#584a32';c.fillRect(x-2,y-20,4,22);for(const [dx,dy,r,col] of [[0,-30,14,'#345c34'],[-8,-23,10,'#487744'],[8,-25,11,'#5b804a']]){c.fillStyle=col;c.beginPath();c.arc(x+dx,y+dy,r,0,7);c.fill()}}
-function structure(x,y,type){if(type==='granary'){prism(x,y,53,30,32,'#c5ad78','#987444');c.fillStyle='#c5a76c';for(let k=-1;k<=1;k++){c.beginPath();c.ellipse(x+k*13,y+7,7,11,0,0,7);c.fill()}}
-else if(type==='workshop'){prism(x,y,65,34,35,'#a7a08e','#665f58');c.fillStyle='#635d53';c.fillRect(x+17,y-70,9,31)}
-else if(type==='library'){prism(x,y,74,39,54,'#ddd0b1','#9d8165');for(let k=-1;k<=1;k++){c.fillStyle='#e8e0c8';c.fillRect(x+k*17-4,y-34,9,24);c.fillStyle='#85765d';c.fillRect(x+k*17-6,y-37,13,4)}}
-else if(type==='forge'){prism(x,y,58,32,38,'#89857c','#595b59');c.fillStyle='#615e56';c.fillRect(x+15,y-78,12,43);c.fillStyle='#b2a9a0';c.beginPath();c.arc(x+20,y-88,10,0,7);c.fill()}
-else if(type==='courthouse'){prism(x,y,85,43,57,'#c8c0aa','#777267');for(let k=-1;k<=1;k++){c.fillStyle='#e5ddc8';c.fillRect(x+k*22-5,y-40,10,34)}c.fillStyle='#d6c39b';c.fillRect(x-47,y-5,94,7)}
-else prism(x,y,30,20,18,'#c0aa88',rand()>.5?'#9b6b4b':'#806c53')}
-for(let i=0;i<11;i++)for(let j=0;j<11;j++){const [x,y]=pos(i,j);poly([[x,y-th/2],[x+tw/2,y],[x,y+th/2],[x-tw/2,y]],rand()>.35?'#8fa66c':'#819a61','#77905c')}
-for(let i=0;i<11;i++)for(let j=0;j<11;j++){const [x,y]=pos(i,j);if(i===5||j===5||i===2||j===8){poly([[x,y-th/2],[x+tw/2,y],[x,y+th/2],[x-tw/2,y]],'#b9a783','#a39373')}}
-const buildingsAt=[[3,3],[7,3],[3,7],[7,7],[5,5]];
-const placed=new Set();['granary','workshop','library','forge','courthouse'].forEach((type,k)=>{if(owned.includes(type))placed.add(buildingsAt[k].join(','))});
-const houses=Math.min(55,4+pop*4),homes=[];for(let i=1;i<10;i++)for(let j=1;j<10;j++){if(i===5||j===5||i===2||j===8||placed.has(i+','+j))continue;homes.push([i,j])}
+function diamond(x,y,fill,stroke){poly([[x,y-th/2],[x+tw/2,y],[x,y+th/2],[x-tw/2,y]],fill,stroke)}
+function tree(x,y,k=1){c.fillStyle='#00000028';c.beginPath();c.ellipse(x+6,y+3,17*k,7*k,0,0,7);c.fill();poly([[x-3*k,y],[x+4*k,y],[x+3*k,y-39*k],[x-2*k,y-39*k]],'#77583b');for(let z=0;z<3;z++){let yy=y-(23+z*16)*k,rr=(24-z*5)*k;poly([[x,yy-37*k],[x-rr,yy+12*k],[x,yy+3*k]],['#619247','#50843f','#386c3b'][z]);poly([[x,yy-37*k],[x+rr,yy+12*k],[x,yy+3*k]],['#376f40','#356c3c','#275735'][z])}}
+function house(x,y,kind='house',variant=0){
+const grand=kind==='courthouse'||kind==='library',ww=grand?70:kind==='workshop'?57:kind==='granary'?52:kind==='forge'?56:35+(variant%3)*5,dd=grand?36:26,hh=grand?64:kind==='house'?28+(variant%3)*7:43;
+const left=x-ww/2,right=x+ww/2,top=y-hh;
+c.fillStyle='#00000024';c.beginPath();c.ellipse(x+10,y+8,ww*.66,dd*.45,0,0,7);c.fill();
+poly([[left,top],[x,top-dd/2],[x,y+dd/2],[left,y]],'#d7bd91','#9b8063');
+poly([[x,top-dd/2],[right,top],[right,y],[x,y+dd/2]],'#b8a081','#866f59');
+const roof=grand?'#6b7880':kind==='forge'?'#625e57':variant%3===0?'#b75e3a':variant%3===1?'#a34d32':'#c87847';
+poly([[left-5,top],[x,top-dd/2-20],[right+5,top],[x,top+dd/2]],roof,'#784b35',1.5);
+poly([[left-5,top],[x,top-dd/2-20],[x,top+dd/2]],'#d58452');
+for(let k=0;k<4;k++){let xx=left+(k+1)*ww/5;line([[xx,top-5-(k%2)*3],[xx+12,top+4]],'#e4a174',1)}
+if(grand){for(let k=-1;k<=1;k++){let xx=x+k*17;poly([[xx-4,top+dd/2+2],[xx+4,top+dd/2+2],[xx+4,y+dd/2-3],[xx-4,y+dd/2-3]],'#f1e2c3','#a59a82');line([[xx-6,top+dd/2+1],[xx+6,top+dd/2+1]],'#8b806e',3)}}
+else{poly([[x+ww*.18,top+15],[x+ww*.34,top+12],[x+ww*.34,top+26],[x+ww*.18,top+30]],'#50747c','#f4ddad');poly([[left+6,top+15],[left+13,top+19],[left+13,top+29],[left+6,top+25]],'#527782','#f4ddad')}
+poly([[x+3,y-9],[x+15,y-15],[x+15,y+dd/2-2],[x+3,y+dd/2+5]],'#65503b','#aa8a5f');
+if(kind==='forge'||kind==='workshop'){poly([[right-12,top-12],[right-3,top-17],[right-3,top-60],[right-12,top-55]],'#857b71');for(let z=0;z<3;z++){c.fillStyle='#b9b6a6'+['99','66','33'][z];c.beginPath();c.arc(right-7+z*8,top-69-z*11,10+z*3,0,7);c.fill()}}
+if(kind==='granary'){for(let k=0;k<3;k++){let xx=x-23+k*19;poly([[xx-8,y+6],[xx,y-2],[xx+8,y+6],[xx+8,y+18],[xx,y+23],[xx-8,y+18]],'#c5aa70','#80643e')}}
+if(kind==='courthouse'){poly([[x-9,top-dd/2-21],[x,top-dd/2-43],[x+9,top-dd/2-21]],'#e6cf91');poly([[x-6,top-dd/2-21],[x+6,top-dd/2-21],[x+6,top-dd/2-13],[x-6,top-dd/2-13]],'#c8ad75')}
+if(kind==='library'){poly([[x-12,top-dd/2-22],[x,top-dd/2-42],[x+12,top-dd/2-22]],'#c6ac80')}
+}
+for(let i=0;i<N;i++)for(let j=0;j<N;j++){const [x,y]=pos(i,j);diamond(x,y,(i+j)%5===0?'#9cbb74':'#92b16d','#7c9d62')}
+for(let i=0;i<N;i++)for(let j=0;j<N;j++){if(i===5||i===6||j===5||j===6||i===2||j===9){const [x,y]=pos(i,j);diamond(x,y,(i+j)%3?'#c6b797':'#b8a789','#a3947c');line([[x-17,y],[x+17,y]],'#d9c7a6',.7)}}
+const landmarkPositions=[[3,3],[8,3],[3,8],[8,8],[6,6]],types=['granary','workshop','library','forge','courthouse'];
+const occupied=new Set(types.filter(t=>owned.includes(t)).map(t=>landmarkPositions[types.indexOf(t)].join(',')));
+const homes=[];for(let i=1;i<N-1;i++)for(let j=1;j<N-1;j++){if(i===5||i===6||j===5||j===6||i===2||j===9||occupied.has(i+','+j))continue;homes.push([i,j])}
 for(let k=homes.length-1;k>0;k--){const j=Math.floor(rand()*(k+1));[homes[k],homes[j]]=[homes[j],homes[k]]}
-const objects=homes.slice(0,houses).map(([i,j])=>({i,j,type:'house'}));
-['granary','workshop','library','forge','courthouse'].forEach((type,k)=>{if(owned.includes(type)){const [i,j]=buildingsAt[k];objects.push({i,j,type})}});
-objects.sort((a,b)=>(a.i+a.j)-(b.i+b.j));for(const o of objects){const [x,y]=pos(o.i,o.j);structure(x,y,o.type)}
-for(let k=0;k<24;k++){const i=Math.floor(rand()*11),j=Math.floor(rand()*11);if(!objects.some(o=>o.i===i&&o.j===j)&&i!==5&&j!==5){const [x,y]=pos(i,j);tree(x,y)}}
+const objects=homes.slice(0,Math.min(homes.length,6+pop*5)).map(([i,j],k)=>({i,j,type:'house',v:k}));
+types.forEach((type,k)=>{if(owned.includes(type)){const [i,j]=landmarkPositions[k];objects.push({i,j,type,v:k})}});
+const used=new Set(objects.map(o=>o.i+','+o.j));for(let i=0;i<N;i++)for(let j=0;j<N;j++){if((i+j)%3===0&&!used.has(i+','+j)&&i!==5&&j!==5&&i!==6&&j!==6){objects.push({i,j,type:'tree',v:i+j})}}
+objects.sort((a,b)=>a.i+a.j-b.i-b.j);for(const o of objects){const [x,y]=pos(o.i,o.j);if(o.type==='tree')tree(x,y,.6+(o.v%3)*.1);else house(x,y,o.type,o.v)}
+// Stone perimeter, crenellations, and an entrance gate become more substantial as population grows.
+if(pop>=3){const corners=[pos(0,0),pos(0,N-1),pos(N-1,N-1),pos(N-1,0)];for(let i=0;i<4;i++){const p=corners[i],q=corners[(i+1)%4];line([p,q],'#a8997c',11);line([[p[0],p[1]-12],[q[0],q[1]-12]],'#e0d1b4',8);for(let k=0;k<=12;k++){let xx=p[0]+(q[0]-p[0])*k/12,yy=p[1]+(q[1]-p[1])*k/12;poly([[xx-4,yy-19],[xx+4,yy-19],[xx+4,yy-11],[xx-4,yy-11]],'#e5d6bb')}}}
 const farms=game.tiles.filter(t=>t.owner===game.cities.indexOf(city)&&t.improvement==='farm').length,mines=game.tiles.filter(t=>t.owner===game.cities.indexOf(city)&&t.improvement==='mine').length;
-c.fillStyle='#30291ed9';c.fillRect(15,12,440,75);c.strokeStyle='#d5b47a';c.strokeRect(15,12,440,75);c.fillStyle='#f6e4bd';c.font='bold 27px Georgia';c.fillText(city.name,30,43);c.font='16px Georgia';c.fillText('Population '+pop+'   •   '+owned.length+' buildings   •   '+farms+' farms   •   '+mines+' mines',30,70);
-$('cityViewDetails').textContent='Completed: '+(owned.map(id=>buildings.find(b=>b.id===id)?.name||id).join(', ')||'No buildings yet')+'. Roads and houses expand with population; landmark buildings appear as construction completes.';
+c.fillStyle='#0b1c2bdc';c.fillRect(22,20,390,81);c.strokeStyle='#d8b76c';c.lineWidth=2;c.strokeRect(22,20,390,81);c.fillStyle='#f4dda9';c.font='bold 30px Georgia';c.fillText(city.name,40,57);c.font='16px Georgia';c.fillText('Population '+pop+'  ·  '+owned.length+' landmarks  ·  '+farms+' farms  ·  '+mines+' mines',40,83);
+$('cityViewDetails').textContent='Completed: '+(owned.map(id=>buildings.find(b=>b.id===id)?.name||id).join(', ')||'No buildings yet')+'. Settlement density grows with population; constructed buildings appear as landmarks.';
 }
 function fillCityPanels(city){const cityIndex=game.cities.indexOf(city),owned=city.buildings||[],territory=game.tiles.filter(t=>t.owner===cityIndex),farms=territory.filter(t=>t.improvement==='farm').length,mines=territory.filter(t=>t.improvement==='mine').length;const stat=(label,value)=>'<div class="city-stat"><span>'+label+'</span><strong>'+value+'</strong></div>';const escapeText=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));$('cityViewStats').innerHTML=stat('👥 Population',city.pop||1)+stat('🏘 Districts',Math.min(55,4+(city.pop||1)*4))+stat('🏛 Buildings',owned.length)+stat('🗺 Controlled tiles',territory.length);$('cityViewBuildings').innerHTML=owned.length?owned.map(id=>stat('✓',escapeText(buildings.find(b=>b.id===id)?.name||id))).join(''):'<p>No buildings completed yet.</p>';$('cityViewImprovements').innerHTML=stat('🌾 Farms',farms)+stat('⛏ Mines',mines);$('cityViewProduction').innerHTML=stat('Current focus',escapeText(city.production||'Not assigned'))+stat('Queued items',Array.isArray(city.queue)?city.queue.length:0)}
 $('cityViewButton').onclick=()=>{const index=tile(...game.selected)?.city;if(index===null||!game.cities[index])return;const city=game.cities[index];$('cityViewTitle').textContent='🏛 '+city.name;$('cityViewOverlay').hidden=false;fillCityPanels(city);drawCityScreen(city)};$('cityViewManage').onclick=()=>{$('cityViewOverlay').hidden=true;$('citypanel').hidden=false;$('citypanel').scrollIntoView({behavior:'smooth',block:'start'})};$('cityViewClose').onclick=()=>$('cityViewOverlay').hidden=true;$('cityViewOverlay').addEventListener('click',e=>{if(e.target===$('cityViewOverlay'))$('cityViewOverlay').hidden=true});
