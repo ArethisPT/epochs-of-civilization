@@ -1,9 +1,9 @@
-
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "epochs-of-civilization",
   "compatibility_date": "2026-11-10",
   "assets": {
     "directory": "."
-  }
+  },
+  "previews": {}
 }
