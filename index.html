@@ -194,14 +194,13 @@ let pendingArmyAction=null;function closeArmyDialog(){pendingArmyAction=null;$('
 function armyMembers(u){return u.armyId==null?[u]:game.units.filter(a=>a.armyId===u.armyId)}
 function armyPower(u){return armyMembers(u).reduce((sum,m)=>sum+Math.max(0,m.hp),0)}
 function splitArmy(u){const members=armyMembers(u);if(members.length<2)return false;const used=new Set(game.units.filter(a=>!members.includes(a)).map(a=>a.y*W+a.x)),dest=[[u.x,u.y]];for(const m of members.slice(1)){const queue=[[u.x,u.y]],seen=new Set([u.y*W+u.x]);let found=null;for(let head=0;head<queue.length&&!found;head++){const [x,y]=queue[head];for(const [dx,dy] of [[0,-1],[1,0],[0,1],[-1,0],[-1,-1],[1,-1],[-1,1],[1,1]]){const nx=x+dx,ny=y+dy,k=ny*W+nx;if(nx<0||ny<0||nx>=W||ny>=H||seen.has(k))continue;seen.add(k);const t=tile(nx,ny);if(['water','mountain'].includes(t.terrain))continue;queue.push([nx,ny]);if(!used.has(k)&&!game.rivals.some(r=>r.units?.some(a=>a.x===nx&&a.y===ny))&&rivalAt(t)===null&&!rivalCityAt(t)&&t.city===null){found=[nx,ny];used.add(k);break}}}if(!found){message('No safe empty tile for each army member.');return}dest.push(found)}members.forEach((m,i)=>{m.x=dest[i][0];m.y=dest[i][1];m.armyId=null;m.moved=true;reveal(m.x,m.y,1)});message('Army disbanded into '+members.length+' nearby tiles.')}
+const cityEnvironment=new Image();cityEnvironment.src='assets/city/city-environment.svg';cityEnvironment.onload=()=>{if(!$('cityViewOverlay').hidden){const idx=tile(...game.selected)?.city;if(idx!=null&&game.cities[idx])drawCityScreen(game.cities[idx])}};
 function drawCityScreen(city){
 const cv=$('cityViewCanvas'),c=cv.getContext('2d'),w=cv.width,h=cv.height;
 const seed=(city.x*173+city.y*239+game.seed)>>>0,rand=rnd(seed),pop=Math.max(1,city.pop||1),owned=city.buildings||[];
-const sky=c.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#a7c7d2');sky.addColorStop(.48,'#e5d7a6');sky.addColorStop(1,'#9cbb81');c.fillStyle=sky;c.fillRect(0,0,w,h);
+if(cityEnvironment.complete&&cityEnvironment.naturalWidth)c.drawImage(cityEnvironment,0,0,w,h);else{c.fillStyle='#87b4aa';c.fillRect(0,0,w,h)}
 function poly(pts,fill,stroke='#00000000',line=1){c.beginPath();c.moveTo(...pts[0]);for(let k=1;k<pts.length;k++)c.lineTo(...pts[k]);c.closePath();c.fillStyle=fill;c.fill();if(stroke!=='#00000000'){c.strokeStyle=stroke;c.lineWidth=line;c.stroke()}}
 function line(pts,col,width=2){c.beginPath();c.moveTo(...pts[0]);for(let k=1;k<pts.length;k++)c.lineTo(...pts[k]);c.strokeStyle=col;c.lineWidth=width;c.stroke()}
-for(let layer=0;layer<4;layer++){const y=130+layer*47;const pts=[[0,y+40]];for(let x=0;x<=w;x+=25)pts.push([x,y-35*Math.sin(x*.008+layer*1.7)-20*Math.sin(x*.023+layer)]);pts.push([w,h],[0,h]);poly(pts,['#9eaf9d','#789b84','#70916d','#83a26b'][layer])}
-for(let k=0;k<16;k++){let x=k*87-60,y=180+18*Math.sin(k*2);poly([[x-68,y+60],[x,y-80-rand()*80],[x+80,y+60]],k%2?'#647e84':'#84989a');poly([[x-25,y-20],[x,y-80-rand()*40],[x+32,y-15],[x+6,y-28]],'#e3e4d9')}
 const originX=w/2,originY=168,tw=77,th=38.5,N=12;
 function pos(i,j){return [originX+(i-j)*tw/2,originY+(i+j)*th/2]}
 function diamond(x,y,fill,stroke){poly([[x,y-th/2],[x+tw/2,y],[x,y+th/2],[x-tw/2,y]],fill,stroke)}
